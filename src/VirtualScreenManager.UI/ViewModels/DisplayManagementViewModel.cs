@@ -66,9 +66,9 @@ public partial class DisplayManagementViewModel : ViewModelBase
                     await _displayManager.SyncDisplayCountAsync(xmlCount).ConfigureAwait(false);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Not connected
+                _logger.LogDebug(ex, "Pipe not connected — skipping sync");
             }
 
             var virtualMonitors = VirtualDisplayConfiguration.GetVirtualMonitors();

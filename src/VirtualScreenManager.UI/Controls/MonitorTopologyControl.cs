@@ -10,6 +10,14 @@ namespace VirtualScreenManager.UI.Controls;
 
 public class MonitorTopologyControl : FrameworkElement
 {
+    private static readonly SolidColorBrush DefaultVirtualFill = CreateFrozen(Color.FromArgb(40, 96, 165, 250));
+    private static readonly SolidColorBrush DefaultPhysicalFill = CreateFrozen(Color.FromArgb(40, 156, 163, 175));
+    private static readonly SolidColorBrush DefaultVirtualBorder = CreateFrozen(Color.FromArgb(200, 96, 165, 250));
+    private static readonly SolidColorBrush DefaultPhysicalBorder = CreateFrozen(Color.FromArgb(200, 156, 163, 175));
+    private static readonly SolidColorBrush DefaultPrimaryBorder = CreateFrozen(Color.FromArgb(220, 52, 211, 153));
+    private static readonly SolidColorBrush DefaultText = CreateFrozen(Color.FromArgb(220, 255, 255, 255));
+    private static readonly SolidColorBrush DefaultSubtext = CreateFrozen(Color.FromArgb(140, 255, 255, 255));
+
     public static readonly DependencyProperty MonitorsProperty =
         DependencyProperty.Register(
             nameof(Monitors),
@@ -78,14 +86,13 @@ public class MonitorTopologyControl : FrameworkElement
         double offsetX = padding + (availableWidth - scaledTotalWidth) / 2;
         double offsetY = padding + (availableHeight - scaledTotalHeight) / 2;
 
-        // Theme-aware colors
-        var virtualFill = new SolidColorBrush(Color.FromArgb(40, 96, 165, 250));   // Blue tint
-        var physicalFill = new SolidColorBrush(Color.FromArgb(40, 156, 163, 175));  // Gray tint
-        var virtualBorder = new SolidColorBrush(Color.FromArgb(200, 96, 165, 250)); // Blue
-        var physicalBorder = new SolidColorBrush(Color.FromArgb(200, 156, 163, 175)); // Gray
-        var primaryBorder = new SolidColorBrush(Color.FromArgb(220, 52, 211, 153)); // Green for primary
-        var textBrush = new SolidColorBrush(Color.FromArgb(220, 255, 255, 255));
-        var subtextBrush = new SolidColorBrush(Color.FromArgb(140, 255, 255, 255));
+        var virtualFill = ResolveBrush("TopologyVirtualFillBrush", DefaultVirtualFill);
+        var physicalFill = ResolveBrush("TopologyPhysicalFillBrush", DefaultPhysicalFill);
+        var virtualBorder = ResolveBrush("TopologyVirtualBorderBrush", DefaultVirtualBorder);
+        var physicalBorder = ResolveBrush("TopologyPhysicalBorderBrush", DefaultPhysicalBorder);
+        var primaryBorder = ResolveBrush("TopologyPrimaryBorderBrush", DefaultPrimaryBorder);
+        var textBrush = ResolveBrush("TopologyTextBrush", DefaultText);
+        var subtextBrush = ResolveBrush("TopologySubtextBrush", DefaultSubtext);
 
         foreach (var monitor in monitors)
         {
@@ -97,7 +104,6 @@ public class MonitorTopologyControl : FrameworkElement
             var rect = new Rect(x, y, w, h);
             double cornerRadius = 6;
 
-            // Fill
             var fill = monitor.IsVirtual ? virtualFill : physicalFill;
             var border = monitor.IsPrimary ? primaryBorder : (monitor.IsVirtual ? virtualBorder : physicalBorder);
             double borderThickness = monitor.IsPrimary ? 2.5 : 1.5;
@@ -160,5 +166,17 @@ public class MonitorTopologyControl : FrameworkElement
         double width = double.IsInfinity(availableSize.Width) ? 400 : availableSize.Width;
         double height = double.IsInfinity(availableSize.Height) ? 200 : availableSize.Height;
         return new Size(width, height);
+    }
+
+    private static Brush ResolveBrush(string resourceKey, Brush fallback)
+    {
+        return Application.Current?.TryFindResource(resourceKey) as Brush ?? fallback;
+    }
+
+    private static SolidColorBrush CreateFrozen(Color color)
+    {
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
     }
 }

@@ -108,9 +108,9 @@ public partial class StatusViewModel : ViewModelBase
                             break;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Pipe not ready yet
+                        _logger.LogDebug(ex, "Ping attempt {Attempt} failed", attempt + 1);
                     }
 
                     await Task.Delay(1000).ConfigureAwait(false);

@@ -11,6 +11,15 @@
       </ResourceDictionary.MergedDictionaries>
 
       <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+      <!-- Monitor topology brushes -->
+      <SolidColorBrush x:Key="TopologyVirtualFillBrush" Color="#2860A5FA" />
+      <SolidColorBrush x:Key="TopologyPhysicalFillBrush" Color="#289CA3AF" />
+      <SolidColorBrush x:Key="TopologyVirtualBorderBrush" Color="#C860A5FA" />
+      <SolidColorBrush x:Key="TopologyPhysicalBorderBrush" Color="#C89CA3AF" />
+      <SolidColorBrush x:Key="TopologyPrimaryBorderBrush" Color="#DC34D399" />
+      <SolidColorBrush x:Key="TopologyTextBrush" Color="#DCFFFFFF" />
+      <SolidColorBrush x:Key="TopologySubtextBrush" Color="#8CFFFFFF" />
+
       <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
       <converters:BoolToStatusConverter x:Key="BoolToStatusConverter" />
       <converters:InverseBoolConverter x:Key="InverseBoolConverter" />

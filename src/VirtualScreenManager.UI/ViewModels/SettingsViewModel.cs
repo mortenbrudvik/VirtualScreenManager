@@ -97,9 +97,9 @@ public partial class SettingsViewModel : ViewModelBase
             {
                 await _displayManager.PingAsync().ConfigureAwait(false);
             }
-            catch
+            catch (Exception ex)
             {
-                // Not connected — settings unavailable
+                _logger.LogDebug(ex, "Pipe not connected — settings unavailable");
             }
 
             // Load driver settings via pipe
@@ -160,7 +160,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "HDR+", HdrPlusEnabled,
-            value => _displayManager.SetHdrPlusAsync(value));
+            value => _displayManager.SetHdrPlusAsync(value),
+            value => HdrPlusEnabled = value);
     }
 
     [RelayCommand]
@@ -168,7 +169,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "SDR 10-bit", Sdr10BitEnabled,
-            value => _displayManager.SetSdr10BitAsync(value));
+            value => _displayManager.SetSdr10BitAsync(value),
+            value => Sdr10BitEnabled = value);
     }
 
     [RelayCommand]
@@ -176,7 +178,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "Custom EDID", CustomEdidEnabled,
-            value => _displayManager.SetCustomEdidAsync(value));
+            value => _displayManager.SetCustomEdidAsync(value),
+            value => CustomEdidEnabled = value);
     }
 
     [RelayCommand]
@@ -184,7 +187,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "Prevent Spoof", PreventSpoofEnabled,
-            value => _displayManager.SetPreventSpoofAsync(value));
+            value => _displayManager.SetPreventSpoofAsync(value),
+            value => PreventSpoofEnabled = value);
     }
 
     [RelayCommand]
@@ -192,7 +196,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "CEA Override", CeaOverrideEnabled,
-            value => _displayManager.SetCeaOverrideAsync(value));
+            value => _displayManager.SetCeaOverrideAsync(value),
+            value => CeaOverrideEnabled = value);
     }
 
     [RelayCommand]
@@ -200,7 +205,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "Hardware Cursor", HardwareCursorEnabled,
-            value => _displayManager.SetHardwareCursorAsync(value));
+            value => _displayManager.SetHardwareCursorAsync(value),
+            value => HardwareCursorEnabled = value);
     }
 
     [RelayCommand]
@@ -208,7 +214,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "Debug Logging", DebugLoggingEnabled,
-            value => _displayManager.SetDebugLoggingAsync(value));
+            value => _displayManager.SetDebugLoggingAsync(value),
+            value => DebugLoggingEnabled = value);
     }
 
     [RelayCommand]
@@ -216,7 +223,8 @@ public partial class SettingsViewModel : ViewModelBase
     {
         await ExecuteSettingChangeAsync(
             "Logging", LoggingEnabled,
-            value => _displayManager.SetLoggingAsync(value));
+            value => _displayManager.SetLoggingAsync(value),
+            value => LoggingEnabled = value);
     }
 
     [RelayCommand]
@@ -253,7 +261,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    private async Task ExecuteSettingChangeAsync(string settingName, bool value, Func<bool, Task> action)
+    private async Task ExecuteSettingChangeAsync(string settingName, bool value, Func<bool, Task> action, Action<bool> revert)
     {
         try
         {
@@ -274,7 +282,10 @@ public partial class SettingsViewModel : ViewModelBase
             _logger.LogError(ex, "Failed to change {Setting}", settingName);
             _activityLogger.Error("Settings", $"Failed to change {settingName}", ex.Message);
             Application.Current.Dispatcher.Invoke(() =>
-                _snackbarService.Show("Error", $"Failed to change {settingName}: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
+            {
+                revert(!value);
+                _snackbarService.Show("Error", $"Failed to change {settingName}: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5));
+            });
         }
     }
 }

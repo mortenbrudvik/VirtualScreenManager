@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -29,19 +30,26 @@ public partial class ActivityLogViewModel : ViewModelBase
     public ActivityLogViewModel(IActivityLogger activityLogger)
     {
         _activityLogger = activityLogger;
-        _activityLogger.EntryAdded += OnEntryAdded;
-        _activityLogger.Cleared += OnCleared;
     }
 
     public override Task OnNavigatedToAsync()
     {
+        _activityLogger.EntryAdded += OnEntryAdded;
+        _activityLogger.Cleared += OnCleared;
         RefreshFilteredEntries();
+        return Task.CompletedTask;
+    }
+
+    public override Task OnNavigatedFromAsync()
+    {
+        _activityLogger.EntryAdded -= OnEntryAdded;
+        _activityLogger.Cleared -= OnCleared;
         return Task.CompletedTask;
     }
 
     private void OnEntryAdded(LogEntry entry)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        Application.Current?.Dispatcher.Invoke(() =>
         {
             if (SelectedFilter == LogLevel.Trace || entry.Level >= SelectedFilter)
             {
@@ -52,7 +60,7 @@ public partial class ActivityLogViewModel : ViewModelBase
 
     private void OnCleared()
     {
-        Application.Current.Dispatcher.Invoke(() => FilteredEntries.Clear());
+        Application.Current?.Dispatcher.Invoke(() => FilteredEntries.Clear());
     }
 
     partial void OnSelectedFilterChanged(LogLevel value)
@@ -87,8 +95,18 @@ public partial class ActivityLogViewModel : ViewModelBase
     [RelayCommand]
     private void CopyLog()
     {
+        if (FilteredEntries.Count == 0) return;
+
         var text = string.Join(Environment.NewLine,
             FilteredEntries.Select(e => $"[{e.Timestamp:HH:mm:ss}] [{e.Level}] [{e.Category}] {e.Message}{(e.Detail is not null ? $" - {e.Detail}" : "")}"));
-        Clipboard.SetText(text);
+
+        try
+        {
+            Clipboard.SetText(text);
+        }
+        catch (ExternalException)
+        {
+            // Clipboard locked by another application
+        }
     }
 }

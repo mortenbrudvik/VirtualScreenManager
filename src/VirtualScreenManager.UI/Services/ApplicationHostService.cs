@@ -8,11 +8,11 @@ namespace VirtualScreenManager.UI.Services;
 
 public class ApplicationHostService : IHostedService
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IWindow _mainWindow;
 
-    public ApplicationHostService(IServiceProvider serviceProvider)
+    public ApplicationHostService(IWindow mainWindow)
     {
-        _serviceProvider = serviceProvider;
+        _mainWindow = mainWindow;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -34,9 +34,8 @@ public class ApplicationHostService : IHostedService
 
         ApplicationThemeManager.ApplySystemTheme();
 
-        var mainWindow = (IWindow)_serviceProvider.GetService(typeof(IWindow))!;
-        mainWindow.Loaded += OnMainWindowLoaded;
-        mainWindow.Show();
+        _mainWindow.Loaded += OnMainWindowLoaded;
+        _mainWindow.Show();
 
         return Task.CompletedTask;
     }
