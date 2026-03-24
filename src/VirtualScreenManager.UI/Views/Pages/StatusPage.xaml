@@ -1,0 +1,158 @@
+<Page x:Class="VirtualScreenManager.UI.Views.Pages.StatusPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      ScrollViewer.CanContentScroll="False">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="24,16">
+
+      <!-- Header -->
+      <ui:TextBlock Text="Status"
+                    FontTypography="Title"
+                    Margin="0,0,0,16" />
+
+      <!-- InfoBar: Not Installed -->
+      <ui:InfoBar Title="Driver Not Installed"
+                  Message="The Virtual Display Driver is not installed on this system."
+                  Severity="Warning"
+                  IsOpen="{Binding ViewModel.IsDriverInstalled, Converter={StaticResource InverseBoolConverter}}"
+                  IsClosable="False"
+                  Margin="0,0,0,8">
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <ui:Button Content="Install Driver"
+                     Appearance="Primary"
+                     Command="{Binding ViewModel.InstallDriverCommand}" />
+        </StackPanel>
+      </ui:InfoBar>
+
+      <!-- InfoBar: Device Disabled -->
+      <ui:InfoBar Title="Driver Disabled"
+                  Message="The virtual display device is currently disabled."
+                  Severity="Informational"
+                  IsOpen="{Binding ViewModel.IsDeviceDisabled}"
+                  IsClosable="False"
+                  Margin="0,0,0,8">
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <ui:Button Content="Enable Driver"
+                     Command="{Binding ViewModel.EnableDriverCommand}" />
+        </StackPanel>
+      </ui:InfoBar>
+
+      <!-- InfoBar: Device Error -->
+      <ui:InfoBar Title="Device Error"
+                  Message="The virtual display device has encountered an error (Code 43). Try restarting."
+                  Severity="Error"
+                  IsOpen="{Binding ViewModel.HasDeviceError}"
+                  IsClosable="False"
+                  Margin="0,0,0,8">
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <ui:Button Content="Restart Device"
+                     Command="{Binding ViewModel.RestartDeviceCommand}" />
+        </StackPanel>
+      </ui:InfoBar>
+
+      <!-- Status Cards -->
+      <ui:TextBlock Text="System Status"
+                    FontTypography="BodyStrong"
+                    Margin="0,8,0,12" />
+
+      <UniformGrid Columns="2"
+                   Margin="0,0,0,16">
+        <!-- Pipe Status -->
+        <ui:Card Margin="0,0,8,8">
+          <StackPanel>
+            <ui:TextBlock Text="Pipe Status"
+                          Appearance="Secondary"
+                          Margin="0,0,0,4" />
+            <StackPanel Orientation="Horizontal">
+              <Ellipse Width="10" Height="10"
+                       Fill="{Binding ViewModel.IsPipeRunning, Converter={StaticResource BoolToBrushConverter}}"
+                       Margin="0,0,8,0"
+                       VerticalAlignment="Center" />
+              <ui:TextBlock Text="{Binding ViewModel.IsPipeRunning, Converter={StaticResource BoolToStatusConverter}}"
+                            FontTypography="BodyStrong" />
+            </StackPanel>
+          </StackPanel>
+        </ui:Card>
+
+        <!-- Connection Status -->
+        <ui:Card Margin="8,0,0,8">
+          <StackPanel>
+            <ui:TextBlock Text="Connected"
+                          Appearance="Secondary"
+                          Margin="0,0,0,4" />
+            <StackPanel Orientation="Horizontal">
+              <Ellipse Width="10" Height="10"
+                       Fill="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToBrushConverter}}"
+                       Margin="0,0,8,0"
+                       VerticalAlignment="Center" />
+              <ui:TextBlock Text="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToStatusConverter}}"
+                            FontTypography="BodyStrong" />
+            </StackPanel>
+          </StackPanel>
+        </ui:Card>
+
+        <!-- Display Count -->
+        <ui:Card Margin="0,0,8,8">
+          <StackPanel>
+            <ui:TextBlock Text="Virtual Displays"
+                          Appearance="Secondary"
+                          Margin="0,0,0,4" />
+            <ui:TextBlock Text="{Binding ViewModel.DisplayCount}"
+                          FontTypography="TitleLarge" />
+          </StackPanel>
+        </ui:Card>
+
+        <!-- Device State -->
+        <ui:Card Margin="8,0,0,8">
+          <StackPanel>
+            <ui:TextBlock Text="Device State"
+                          Appearance="Secondary"
+                          Margin="0,0,0,4" />
+            <ui:TextBlock Text="{Binding ViewModel.DeviceStateText}"
+                          FontTypography="BodyStrong" />
+          </StackPanel>
+        </ui:Card>
+      </UniformGrid>
+
+      <!-- Actions -->
+      <ui:TextBlock Text="Actions"
+                    FontTypography="BodyStrong"
+                    Margin="0,0,0,12" />
+
+      <WrapPanel Margin="0,0,0,8">
+        <ui:Button Content="Install Driver"
+                   Icon="{ui:SymbolIcon ArrowDownload24}"
+                   Appearance="Primary"
+                   Command="{Binding ViewModel.InstallDriverCommand}"
+                   Visibility="{Binding ViewModel.IsDriverInstalled, Converter={StaticResource InverseBoolToVisibilityConverter}}"
+                   Margin="0,0,8,8" />
+        <ui:Button Content="Enable"
+                   Icon="{ui:SymbolIcon Play24}"
+                   Command="{Binding ViewModel.EnableDriverCommand}"
+                   Visibility="{Binding ViewModel.IsDeviceDisabled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                   Margin="0,0,8,8" />
+        <ui:Button Content="Disable"
+                   Icon="{ui:SymbolIcon Pause24}"
+                   Command="{Binding ViewModel.DisableDriverCommand}"
+                   Visibility="{Binding ViewModel.IsDeviceEnabled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                   Margin="0,0,8,8" />
+        <ui:Button Content="Restart Device"
+                   Icon="{ui:SymbolIcon ArrowReset24}"
+                   Command="{Binding ViewModel.RestartDeviceCommand}"
+                   Visibility="{Binding ViewModel.IsDriverInstalled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                   Margin="0,0,8,8" />
+        <ui:Button Content="Uninstall"
+                   Icon="{ui:SymbolIcon Delete24}"
+                   Appearance="Danger"
+                   Command="{Binding ViewModel.UninstallDriverCommand}"
+                   Visibility="{Binding ViewModel.IsDriverInstalled, Converter={StaticResource BooleanToVisibilityConverter}}"
+                   Margin="0,0,8,8" />
+      </WrapPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</Page>

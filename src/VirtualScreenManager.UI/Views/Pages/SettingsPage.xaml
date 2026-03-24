@@ -1,0 +1,237 @@
+<Page x:Class="VirtualScreenManager.UI.Views.Pages.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      ScrollViewer.CanContentScroll="False">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="24,16">
+
+      <!-- Header -->
+      <ui:TextBlock Text="Settings"
+                    FontTypography="Title"
+                    Margin="0,0,0,16" />
+
+      <!-- Display Features -->
+      <ui:CardExpander Header="Display Features"
+                       Icon="{ui:SymbolIcon Desktop24}"
+                       IsExpanded="True"
+                       Margin="0,0,0,8">
+        <StackPanel>
+          <ui:Card Margin="0,0,0,4">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="HDR+" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Enable High Dynamic Range Plus mode" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.HdrPlusEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleHdrPlusCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+
+          <ui:Card Margin="0,0,0,4">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="SDR 10-bit" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Enable 10-bit SDR color depth" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.Sdr10BitEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleSdr10BitCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+
+          <ui:Card>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="Custom EDID" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Use custom Extended Display Identification Data" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.CustomEdidEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleCustomEdidCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+        </StackPanel>
+      </ui:CardExpander>
+
+      <!-- Advanced -->
+      <ui:CardExpander Header="Advanced"
+                       Icon="{ui:SymbolIcon Options24}"
+                       Margin="0,0,0,8">
+        <StackPanel>
+          <ui:Card Margin="0,0,0,4">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="Prevent Spoof" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Prevent display spoofing detection" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.PreventSpoofEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.TogglePreventSpoofCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+
+          <ui:Card>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="CEA Override" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Override Consumer Electronics Association settings" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.CeaOverrideEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleCeaOverrideCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+        </StackPanel>
+      </ui:CardExpander>
+
+      <!-- Cursor -->
+      <ui:CardExpander Header="Cursor"
+                       Icon="{ui:SymbolIcon Cursor24}"
+                       Margin="0,0,0,8">
+        <ui:Card>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+              <ui:TextBlock Text="Hardware Cursor" FontTypography="BodyStrong" />
+              <ui:TextBlock Text="Use hardware cursor rendering for virtual displays" Appearance="Secondary" />
+            </StackPanel>
+            <ui:ToggleSwitch Grid.Column="1"
+                             IsChecked="{Binding ViewModel.HardwareCursorEnabled, Mode=TwoWay}"
+                             Command="{Binding ViewModel.ToggleHardwareCursorCommand}"
+                             VerticalAlignment="Center" />
+          </Grid>
+        </ui:Card>
+      </ui:CardExpander>
+
+      <!-- GPU -->
+      <ui:CardExpander Header="GPU Assignment"
+                       Icon="{ui:SymbolIcon Board24}"
+                       Margin="0,0,0,8">
+        <StackPanel>
+          <ui:Card Margin="0,0,0,4">
+            <StackPanel>
+              <ui:TextBlock Text="Current GPU"
+                            Appearance="Secondary"
+                            Margin="0,0,0,4" />
+              <ui:TextBlock Text="{Binding ViewModel.CurrentGpu}"
+                            FontTypography="BodyStrong" />
+            </StackPanel>
+          </ui:Card>
+
+          <ui:Card>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <ComboBox Grid.Column="0"
+                        ItemsSource="{Binding ViewModel.AvailableGpus}"
+                        SelectedItem="{Binding ViewModel.SelectedGpu, Mode=TwoWay}"
+                        Margin="0,0,12,0" />
+              <ui:Button Grid.Column="1"
+                         Content="Apply"
+                         Appearance="Primary"
+                         Command="{Binding ViewModel.SetGpuCommand}"
+                         VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+        </StackPanel>
+      </ui:CardExpander>
+
+      <!-- Diagnostics -->
+      <ui:CardExpander Header="Diagnostics"
+                       Icon="{ui:SymbolIcon Bug24}"
+                       Margin="0,0,0,8">
+        <StackPanel>
+          <ui:Card Margin="0,0,0,4">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="Debug Logging" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Enable verbose debug logging in the driver" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.DebugLoggingEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleDebugLoggingCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+
+          <ui:Card>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <StackPanel Grid.Column="0">
+                <ui:TextBlock Text="Logging" FontTypography="BodyStrong" />
+                <ui:TextBlock Text="Enable general driver logging" Appearance="Secondary" />
+              </StackPanel>
+              <ui:ToggleSwitch Grid.Column="1"
+                               IsChecked="{Binding ViewModel.LoggingEnabled, Mode=TwoWay}"
+                               Command="{Binding ViewModel.ToggleLoggingCommand}"
+                               VerticalAlignment="Center" />
+            </Grid>
+          </ui:Card>
+        </StackPanel>
+      </ui:CardExpander>
+
+      <!-- Driver Install Path -->
+      <ui:Card Margin="0,0,0,8">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0">
+            <ui:TextBlock Text="Driver Install Location" FontTypography="BodyStrong" />
+            <ui:TextBlock Text="{Binding ViewModel.InstallPath}"
+                          Appearance="Secondary" />
+          </StackPanel>
+          <ui:Button Grid.Column="1"
+                     Content="Open Folder"
+                     Icon="{ui:SymbolIcon FolderOpen24}"
+                     Command="{Binding ViewModel.OpenInstallFolderCommand}"
+                     VerticalAlignment="Center" />
+        </Grid>
+      </ui:Card>
+
+    </StackPanel>
+  </ScrollViewer>
+
+</Page>

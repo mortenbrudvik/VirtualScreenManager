@@ -1,0 +1,22 @@
+<Application x:Class="VirtualScreenManager.UI.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:VirtualScreenManager.UI.Converters"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ui:ThemesDictionary Theme="Dark" />
+        <ui:ControlsDictionary />
+      </ResourceDictionary.MergedDictionaries>
+
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+      <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+      <converters:BoolToStatusConverter x:Key="BoolToStatusConverter" />
+      <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+      <converters:LogLevelToSeverityConverter x:Key="LogLevelToSeverityConverter" />
+      <converters:VirtualLabelConverter x:Key="VirtualLabelConverter" />
+      <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>
