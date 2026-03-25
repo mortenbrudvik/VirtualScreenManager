@@ -70,20 +70,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
             RefreshMonitorList();
             _activityLogger.Info("Displays", $"Refreshed — {AllMonitors.Count} display(s) detected");
 
-            // Sync count with driver pipe in background (can be slow if pipe is unavailable)
-            try
-            {
-                await _displayManager.PingAsync().ConfigureAwait(false);
-                var xmlCount = _displayInfo.GetConfiguredDisplayCount();
-                if (xmlCount > 0)
-                {
-                    await _displayManager.SyncDisplayCountAsync(xmlCount).ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Pipe not connected — skipping sync");
-            }
+            await TrySyncDisplayCountAsync();
         }
         catch (Exception ex)
         {
@@ -187,6 +174,27 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Auto-recovery failed");
             _activityLogger.Error("Displays", "Auto-recovery failed", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Syncs the configured display count with the driver pipe.
+    /// Fails silently if the pipe is unavailable — the UI is already populated from local data.
+    /// </summary>
+    private async Task TrySyncDisplayCountAsync()
+    {
+        try
+        {
+            await _displayManager.PingAsync().ConfigureAwait(false);
+            var xmlCount = _displayInfo.GetConfiguredDisplayCount();
+            if (xmlCount > 0)
+            {
+                await _displayManager.SyncDisplayCountAsync(xmlCount).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Pipe not connected — skipping sync");
         }
     }
 

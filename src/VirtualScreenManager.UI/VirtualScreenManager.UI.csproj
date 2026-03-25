@@ -4,6 +4,7 @@
     <UseWPF>true</UseWPF>
     <OutputType>WinExe</OutputType>
     <StartupObject>VirtualScreenManager.UI.App</StartupObject>
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

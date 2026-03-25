@@ -241,10 +241,11 @@ public partial class SettingsViewModel : ViewModelBase
             await _displayManager.SetGpuAsync(SelectedGpu).ConfigureAwait(false);
             _activityLogger.Info("Settings", $"GPU changed to {SelectedGpu}");
 
-            Application.Current?.Dispatcher?.Invoke(() => CurrentGpu = SelectedGpu);
-
             Application.Current?.Dispatcher?.Invoke(() =>
-                _snackbarService.Show("GPU Updated", $"GPU set to {SelectedGpu}", ControlAppearance.Success, null, TimeSpan.FromSeconds(3)));
+            {
+                CurrentGpu = SelectedGpu;
+                _snackbarService.Show("GPU Updated", $"GPU set to {SelectedGpu}", ControlAppearance.Success, null, TimeSpan.FromSeconds(3));
+            });
         }
         catch (Exception ex)
         {
@@ -261,7 +262,7 @@ public partial class SettingsViewModel : ViewModelBase
         var path = _displayInfo.GetInstallPath();
         if (path is not null && Directory.Exists(path))
         {
-            Process.Start(new ProcessStartInfo(path!) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
         }
     }
 
