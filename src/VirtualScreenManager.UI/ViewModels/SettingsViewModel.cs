@@ -89,7 +89,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             // Load install path
             var path = VirtualDisplayDetection.GetInstallPath();
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
                 InstallPath = path ?? "Not installed");
 
             // Ensure pipe connection
@@ -106,7 +106,7 @@ public partial class SettingsViewModel : ViewModelBase
             if (_displayManager.IsConnected)
             {
                 var settings = await _displayManager.GetSettingsAsync().ConfigureAwait(false);
-                Application.Current.Dispatcher.Invoke(() =>
+                Application.Current?.Dispatcher?.Invoke(() =>
                 {
                     HdrPlusEnabled = settings.HdrPlus;
                     Sdr10BitEnabled = settings.Sdr10Bit;
@@ -127,7 +127,7 @@ public partial class SettingsViewModel : ViewModelBase
                     var currentGpu = await _displayManager.GetAssignedGpuAsync().ConfigureAwait(false);
                     var allGpus = await _displayManager.GetAllGpusAsync().ConfigureAwait(false);
 
-                    Application.Current.Dispatcher.Invoke(() =>
+                    Application.Current?.Dispatcher?.Invoke(() =>
                     {
                         CurrentGpu = currentGpu;
                         AvailableGpus.Clear();
@@ -151,7 +151,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         finally
         {
-            Application.Current.Dispatcher.Invoke(() => IsLoading = false);
+            Application.Current?.Dispatcher?.Invoke(() => IsLoading = false);
         }
     }
 
@@ -237,16 +237,16 @@ public partial class SettingsViewModel : ViewModelBase
             await _displayManager.SetGpuAsync(SelectedGpu).ConfigureAwait(false);
             _activityLogger.Info("Settings", $"GPU changed to {SelectedGpu}");
 
-            Application.Current.Dispatcher.Invoke(() => CurrentGpu = SelectedGpu);
+            Application.Current?.Dispatcher?.Invoke(() => CurrentGpu = SelectedGpu);
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
                 _snackbarService.Show("GPU Updated", $"GPU set to {SelectedGpu}", ControlAppearance.Success, null, TimeSpan.FromSeconds(3)));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set GPU");
             _activityLogger.Error("Settings", "Failed to set GPU", ex.Message);
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to set GPU: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -261,6 +261,8 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
+    private static readonly HashSet<string> DriverReloadSettings = ["HDR+", "SDR 10-bit", "Custom EDID", "CEA Override"];
+
     private async Task ExecuteSettingChangeAsync(string settingName, bool value, Func<bool, Task> action, Action<bool> revert)
     {
         try
@@ -268,20 +270,23 @@ public partial class SettingsViewModel : ViewModelBase
             await action(value).ConfigureAwait(false);
             _activityLogger.Info("Settings", $"{settingName} {(value ? "enabled" : "disabled")}");
 
-            // Auto-recovery for settings that trigger driver reload
-            await Task.Delay(2000).ConfigureAwait(false);
-            var deviceState = await _displaySetup.GetDeviceStateAsync().ConfigureAwait(false);
-            if (deviceState == DeviceState.Error)
+            if (DriverReloadSettings.Contains(settingName))
             {
-                _activityLogger.Warning("Settings", $"Driver crash after {settingName} change, restarting...");
-                await _displaySetup.RestartDeviceAsync().ConfigureAwait(false);
+                // These settings trigger a driver reload that can cause a temporary Code 43 error
+                await Task.Delay(2000).ConfigureAwait(false);
+                var deviceState = await _displaySetup.GetDeviceStateAsync().ConfigureAwait(false);
+                if (deviceState == DeviceState.Error)
+                {
+                    _activityLogger.Warning("Settings", $"Driver crash after {settingName} change, restarting...");
+                    await _displaySetup.RestartDeviceAsync().ConfigureAwait(false);
+                }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to change {Setting}", settingName);
             _activityLogger.Error("Settings", $"Failed to change {settingName}", ex.Message);
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 revert(!value);
                 _snackbarService.Show("Error", $"Failed to change {settingName}: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5));

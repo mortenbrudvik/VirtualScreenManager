@@ -8,9 +8,9 @@ namespace VirtualScreenManager.UI.Services;
 
 public class ApplicationHostService : IHostedService
 {
-    private readonly IWindow _mainWindow;
+    private readonly Lazy<IWindow> _mainWindow;
 
-    public ApplicationHostService(IWindow mainWindow)
+    public ApplicationHostService(Lazy<IWindow> mainWindow)
     {
         _mainWindow = mainWindow;
     }
@@ -34,8 +34,9 @@ public class ApplicationHostService : IHostedService
 
         ApplicationThemeManager.ApplySystemTheme();
 
-        _mainWindow.Loaded += OnMainWindowLoaded;
-        _mainWindow.Show();
+        var mainWindow = _mainWindow.Value;
+        mainWindow.Loaded += OnMainWindowLoaded;
+        mainWindow.Show();
 
         return Task.CompletedTask;
     }

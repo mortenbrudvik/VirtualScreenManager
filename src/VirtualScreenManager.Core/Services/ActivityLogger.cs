@@ -6,6 +6,7 @@ namespace VirtualScreenManager.Core.Services;
 
 public class ActivityLogger : IActivityLogger
 {
+    private const int MaxEntries = 10_000;
     private readonly ConcurrentQueue<LogEntry> _entries = new();
 
     public IReadOnlyList<LogEntry> Entries => _entries.ToArray();
@@ -17,6 +18,12 @@ public class ActivityLogger : IActivityLogger
     {
         var entry = new LogEntry(DateTime.Now, level, category, message, detail);
         _entries.Enqueue(entry);
+
+        while (_entries.Count > MaxEntries)
+        {
+            _entries.TryDequeue(out _);
+        }
+
         EntryAdded?.Invoke(entry);
     }
 

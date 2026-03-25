@@ -72,12 +72,12 @@ public partial class DisplayManagementViewModel : ViewModelBase
             }
 
             var virtualMonitors = VirtualDisplayConfiguration.GetVirtualMonitors();
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 DisplayCount = virtualMonitors.Count > 0 ? virtualMonitors.Count : 1;
             });
 
-            await RefreshMonitorListAsync();
+            RefreshMonitorList();
             _activityLogger.Info("Displays", $"Refreshed — {AllMonitors.Count} display(s) detected");
         }
         catch (Exception ex)
@@ -86,7 +86,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
         }
         finally
         {
-            Application.Current.Dispatcher.Invoke(() => IsRefreshing = false);
+            Application.Current?.Dispatcher?.Invoke(() => IsRefreshing = false);
         }
     }
 
@@ -99,12 +99,13 @@ public partial class DisplayManagementViewModel : ViewModelBase
         IsUpdating = true;
         try
         {
+            // Verify pipe connection before persisting to XML
+            await _displayManager.PingAsync().ConfigureAwait(false);
 
-            // Write count to XML first (driver reads from XML on reload)
+            // Persist to XML (driver reads from XML on reload)
             VirtualDisplayDetection.SetConfiguredDisplayCount(targetCount);
 
-            // Ensure pipe connection, sync, and send command
-            await _displayManager.PingAsync().ConfigureAwait(false);
+            // Sync and send command
             await _displayManager.SyncDisplayCountAsync(targetCount).ConfigureAwait(false);
             await _displayManager.SetDisplayCountAsync(targetCount).ConfigureAwait(false);
 
@@ -115,18 +116,18 @@ public partial class DisplayManagementViewModel : ViewModelBase
 
             // Auto-recovery: check for driver crash
             await AutoRecoverIfNeededAsync();
-            await RefreshMonitorListAsync();
+            RefreshMonitorList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to set display count");
             _activityLogger.Error("Displays", "Failed to set display count", ex.Message);
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to set display count: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
         finally
         {
-            Application.Current.Dispatcher.Invoke(() => IsUpdating = false);
+            Application.Current?.Dispatcher?.Invoke(() => IsUpdating = false);
         }
     }
 
@@ -139,7 +140,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
             await _displayManager.RemoveAllDisplaysAsync().ConfigureAwait(false);
             _activityLogger.Info("Displays", "All virtual displays removed");
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 DisplayCount = 0;
                 VirtualMonitors.Clear();
@@ -149,10 +150,12 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to remove all displays");
             _activityLogger.Error("Displays", "Failed to remove all displays", ex.Message);
+            Application.Current?.Dispatcher?.Invoke(() =>
+                _snackbarService.Show("Error", $"Failed to remove displays: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
         finally
         {
-            Application.Current.Dispatcher.Invoke(() => IsUpdating = false);
+            Application.Current?.Dispatcher?.Invoke(() => IsUpdating = false);
         }
     }
 
@@ -182,14 +185,14 @@ public partial class DisplayManagementViewModel : ViewModelBase
         }
     }
 
-    private Task RefreshMonitorListAsync()
+    private void RefreshMonitorList()
     {
         try
         {
             var allMonitors = VirtualDisplayConfiguration.GetAllMonitors();
             var virtualMonitors = VirtualDisplayConfiguration.GetVirtualMonitors();
 
-            Application.Current.Dispatcher.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 AllMonitors.Clear();
                 foreach (var monitor in allMonitors)
@@ -208,7 +211,5 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             _logger.LogWarning(ex, "Failed to refresh monitor list");
         }
-
-        return Task.CompletedTask;
     }
 }
