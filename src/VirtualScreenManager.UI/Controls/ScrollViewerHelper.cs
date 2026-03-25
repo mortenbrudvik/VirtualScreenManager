@@ -4,6 +4,11 @@ using System.Windows.Input;
 
 namespace VirtualScreenManager.UI.Controls;
 
+/// <summary>
+/// Workaround for WPF nested ScrollViewer issue where mouse wheel events are consumed
+/// by inner scrollable controls, preventing the outer ScrollViewer from scrolling.
+/// Attach FixMouseWheel="True" to intercept PreviewMouseWheel and handle scrolling directly.
+/// </summary>
 public static class ScrollViewerHelper
 {
     public static readonly DependencyProperty FixMouseWheelProperty =

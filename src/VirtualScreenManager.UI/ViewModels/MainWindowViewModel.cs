@@ -1,9 +1,6 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-
 namespace VirtualScreenManager.UI.ViewModels;
 
-public partial class MainWindowViewModel : ObservableObject
+public partial class MainWindowViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private string _title = "Virtual Screen Manager";
+    public string Title { get; } = "Virtual Screen Manager";
 }

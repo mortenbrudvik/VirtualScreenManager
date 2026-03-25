@@ -11,8 +11,9 @@ public class AppModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
-        // Core module
         builder.RegisterModule<CoreModule>();
+
+        builder.RegisterType<VirtualDisplayInfo>().As<IVirtualDisplayInfo>().SingleInstance();
 
         // ViewModels
         builder.RegisterType<MainWindowViewModel>().AsSelf().SingleInstance();

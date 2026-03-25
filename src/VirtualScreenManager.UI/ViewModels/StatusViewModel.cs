@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using VirtualDisplayDriver;
 using VirtualScreenManager.Core.Services;
+using VirtualScreenManager.UI.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 
@@ -13,41 +14,46 @@ public partial class StatusViewModel : ViewModelBase
 {
     private readonly IVirtualDisplayManager _displayManager;
     private readonly IVirtualDisplaySetup _displaySetup;
+    private readonly IVirtualDisplayInfo _displayInfo;
     private readonly IContentDialogService _contentDialogService;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
     private readonly ILogger<StatusViewModel> _logger;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(InstallDriverCommand))]
-    [NotifyCanExecuteChangedFor(nameof(UninstallDriverCommand))]
-    [NotifyCanExecuteChangedFor(nameof(EnableDriverCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DisableDriverCommand))]
-    [NotifyCanExecuteChangedFor(nameof(RestartDeviceCommand))]
-    [NotifyPropertyChangedFor(nameof(IsDeviceDisabled))]
-    private bool _isDriverInstalled;
+    private DeviceState _currentDeviceState;
+
+    public DeviceState CurrentDeviceState
+    {
+        get => _currentDeviceState;
+        private set
+        {
+            if (SetProperty(ref _currentDeviceState, value))
+            {
+                OnPropertyChanged(nameof(IsDriverInstalled));
+                OnPropertyChanged(nameof(IsDeviceEnabled));
+                OnPropertyChanged(nameof(HasDeviceError));
+                OnPropertyChanged(nameof(IsDeviceDisabled));
+                OnPropertyChanged(nameof(DeviceStateText));
+                InstallDriverCommand.NotifyCanExecuteChanged();
+                UninstallDriverCommand.NotifyCanExecuteChanged();
+                EnableDriverCommand.NotifyCanExecuteChanged();
+                DisableDriverCommand.NotifyCanExecuteChanged();
+                RestartDeviceCommand.NotifyCanExecuteChanged();
+            }
+        }
+    }
+
+    public bool IsDriverInstalled => CurrentDeviceState != DeviceState.NotFound;
+    public bool IsDeviceEnabled => CurrentDeviceState == DeviceState.Enabled;
+    public bool HasDeviceError => CurrentDeviceState == DeviceState.Error;
+    public bool IsDeviceDisabled => IsDriverInstalled && !IsDeviceEnabled && !HasDeviceError;
+    public string DeviceStateText => CurrentDeviceState.ToString();
 
     [ObservableProperty]
     private bool _isConnected;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDeviceDisabled))]
-    [NotifyCanExecuteChangedFor(nameof(EnableDriverCommand))]
-    [NotifyCanExecuteChangedFor(nameof(DisableDriverCommand))]
-    private bool _isDeviceEnabled;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsDeviceDisabled))]
-    [NotifyCanExecuteChangedFor(nameof(RestartDeviceCommand))]
-    private bool _hasDeviceError;
-
-    public bool IsDeviceDisabled => IsDriverInstalled && !IsDeviceEnabled && !HasDeviceError;
-
-    [ObservableProperty]
     private int _displayCount;
-
-    [ObservableProperty]
-    private string _deviceStateText = "Unknown";
 
     [ObservableProperty]
     private bool _isRefreshing;
@@ -55,6 +61,7 @@ public partial class StatusViewModel : ViewModelBase
     public StatusViewModel(
         IVirtualDisplayManager displayManager,
         IVirtualDisplaySetup displaySetup,
+        IVirtualDisplayInfo displayInfo,
         IContentDialogService contentDialogService,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
@@ -62,6 +69,7 @@ public partial class StatusViewModel : ViewModelBase
     {
         _displayManager = displayManager;
         _displaySetup = displaySetup;
+        _displayInfo = displayInfo;
         _contentDialogService = contentDialogService;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
@@ -85,10 +93,7 @@ public partial class StatusViewModel : ViewModelBase
 
             Application.Current?.Dispatcher?.Invoke(() =>
             {
-                IsDriverInstalled = deviceState != DeviceState.NotFound;
-                IsDeviceEnabled = deviceState == DeviceState.Enabled;
-                HasDeviceError = deviceState == DeviceState.Error;
-                DeviceStateText = deviceState.ToString();
+                CurrentDeviceState = deviceState;
             });
 
             if (deviceState == DeviceState.Enabled)
@@ -101,7 +106,7 @@ public partial class StatusViewModel : ViewModelBase
                         isConnected = await _displayManager.PingAsync().ConfigureAwait(false);
                         if (isConnected)
                         {
-                            displayCount = VirtualDisplayConfiguration.GetVirtualMonitors().Count;
+                            displayCount = _displayInfo.GetVirtualMonitors().Count;
                             break;
                         }
                     }

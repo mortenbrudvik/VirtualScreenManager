@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using VirtualDisplayDriver;
 using VirtualScreenManager.Core.Services;
+using VirtualScreenManager.UI.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 
@@ -15,6 +16,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
 {
     private readonly IVirtualDisplayManager _displayManager;
     private readonly IVirtualDisplaySetup _displaySetup;
+    private readonly IVirtualDisplayInfo _displayInfo;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
     private readonly ILogger<DisplayManagementViewModel> _logger;
@@ -34,12 +36,14 @@ public partial class DisplayManagementViewModel : ViewModelBase
     public DisplayManagementViewModel(
         IVirtualDisplayManager displayManager,
         IVirtualDisplaySetup displaySetup,
+        IVirtualDisplayInfo displayInfo,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
         ILogger<DisplayManagementViewModel> logger)
     {
         _displayManager = displayManager;
         _displaySetup = displaySetup;
+        _displayInfo = displayInfo;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
         _logger = logger;
@@ -56,11 +60,21 @@ public partial class DisplayManagementViewModel : ViewModelBase
         IsRefreshing = true;
         try
         {
-            // Ensure pipe connection and sync count from XML
+            // Load monitors immediately (local Win32 API — fast)
+            var virtualMonitors = _displayInfo.GetVirtualMonitors();
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                DisplayCount = virtualMonitors.Count > 0 ? virtualMonitors.Count : 1;
+            });
+
+            RefreshMonitorList();
+            _activityLogger.Info("Displays", $"Refreshed — {AllMonitors.Count} display(s) detected");
+
+            // Sync count with driver pipe in background (can be slow if pipe is unavailable)
             try
             {
                 await _displayManager.PingAsync().ConfigureAwait(false);
-                var xmlCount = VirtualDisplayDetection.GetConfiguredDisplayCount();
+                var xmlCount = _displayInfo.GetConfiguredDisplayCount();
                 if (xmlCount > 0)
                 {
                     await _displayManager.SyncDisplayCountAsync(xmlCount).ConfigureAwait(false);
@@ -70,15 +84,6 @@ public partial class DisplayManagementViewModel : ViewModelBase
             {
                 _logger.LogDebug(ex, "Pipe not connected — skipping sync");
             }
-
-            var virtualMonitors = VirtualDisplayConfiguration.GetVirtualMonitors();
-            Application.Current?.Dispatcher?.Invoke(() =>
-            {
-                DisplayCount = virtualMonitors.Count > 0 ? virtualMonitors.Count : 1;
-            });
-
-            RefreshMonitorList();
-            _activityLogger.Info("Displays", $"Refreshed — {AllMonitors.Count} display(s) detected");
         }
         catch (Exception ex)
         {
@@ -103,7 +108,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
             await _displayManager.PingAsync().ConfigureAwait(false);
 
             // Persist to XML (driver reads from XML on reload)
-            VirtualDisplayDetection.SetConfiguredDisplayCount(targetCount);
+            _displayInfo.SetConfiguredDisplayCount(targetCount);
 
             // Sync and send command
             await _displayManager.SyncDisplayCountAsync(targetCount).ConfigureAwait(false);
@@ -189,8 +194,8 @@ public partial class DisplayManagementViewModel : ViewModelBase
     {
         try
         {
-            var allMonitors = VirtualDisplayConfiguration.GetAllMonitors();
-            var virtualMonitors = VirtualDisplayConfiguration.GetVirtualMonitors();
+            var allMonitors = _displayInfo.GetAllMonitors();
+            var virtualMonitors = _displayInfo.GetVirtualMonitors();
 
             Application.Current?.Dispatcher?.Invoke(() =>
             {

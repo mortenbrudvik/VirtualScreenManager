@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using VirtualDisplayDriver;
 using VirtualScreenManager.Core.Services;
+using VirtualScreenManager.UI.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 
@@ -16,6 +17,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly IVirtualDisplayManager _displayManager;
     private readonly IVirtualDisplaySetup _displaySetup;
+    private readonly IVirtualDisplayInfo _displayInfo;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
     private readonly ILogger<SettingsViewModel> _logger;
@@ -66,12 +68,14 @@ public partial class SettingsViewModel : ViewModelBase
     public SettingsViewModel(
         IVirtualDisplayManager displayManager,
         IVirtualDisplaySetup displaySetup,
+        IVirtualDisplayInfo displayInfo,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
         ILogger<SettingsViewModel> logger)
     {
         _displayManager = displayManager;
         _displaySetup = displaySetup;
+        _displayInfo = displayInfo;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
         _logger = logger;
@@ -88,7 +92,7 @@ public partial class SettingsViewModel : ViewModelBase
         try
         {
             // Load install path
-            var path = VirtualDisplayDetection.GetInstallPath();
+            var path = _displayInfo.GetInstallPath();
             Application.Current?.Dispatcher?.Invoke(() =>
                 InstallPath = path ?? "Not installed");
 
@@ -254,7 +258,7 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void OpenInstallFolder()
     {
-        var path = VirtualDisplayDetection.GetInstallPath();
+        var path = _displayInfo.GetInstallPath();
         if (path is not null && Directory.Exists(path))
         {
             Process.Start(new ProcessStartInfo(path!) { UseShellExecute = true });
