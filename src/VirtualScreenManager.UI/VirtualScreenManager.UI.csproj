@@ -5,6 +5,10 @@
     <OutputType>WinExe</OutputType>
     <StartupObject>VirtualScreenManager.UI.App</StartupObject>
     <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Product>Virtual Screen Manager</Product>
+    <Company>VirtualScreenManager</Company>
+    <Description>Manage virtual screens on Windows</Description>
   </PropertyGroup>
 
   <ItemGroup>

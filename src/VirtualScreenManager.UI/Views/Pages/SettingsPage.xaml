@@ -32,6 +32,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.HdrPlusEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleHdrPlusCommand}"
+                               AutomationProperties.Name="HDR+"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -49,6 +50,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.Sdr10BitEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleSdr10BitCommand}"
+                               AutomationProperties.Name="SDR 10-bit"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -66,6 +68,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.CustomEdidEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleCustomEdidCommand}"
+                               AutomationProperties.Name="Custom EDID"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -90,6 +93,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.PreventSpoofEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.TogglePreventSpoofCommand}"
+                               AutomationProperties.Name="Prevent Spoof"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -107,6 +111,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.CeaOverrideEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleCeaOverrideCommand}"
+                               AutomationProperties.Name="CEA Override"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -130,6 +135,7 @@
             <ui:ToggleSwitch Grid.Column="1"
                              IsChecked="{Binding ViewModel.HardwareCursorEnabled, Mode=TwoWay}"
                              Command="{Binding ViewModel.ToggleHardwareCursorCommand}"
+                             AutomationProperties.Name="Hardware Cursor"
                              VerticalAlignment="Center" />
           </Grid>
         </ui:Card>
@@ -188,6 +194,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.DebugLoggingEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleDebugLoggingCommand}"
+                               AutomationProperties.Name="Debug Logging"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>
@@ -205,6 +212,7 @@
               <ui:ToggleSwitch Grid.Column="1"
                                IsChecked="{Binding ViewModel.LoggingEnabled, Mode=TwoWay}"
                                Command="{Binding ViewModel.ToggleLoggingCommand}"
+                               AutomationProperties.Name="Logging"
                                VerticalAlignment="Center" />
             </Grid>
           </ui:Card>

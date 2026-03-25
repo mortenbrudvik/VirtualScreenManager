@@ -1,7 +1,6 @@
 using System.Windows;
 using Microsoft.Extensions.Hosting;
 using VirtualScreenManager.UI.Views;
-using VirtualScreenManager.UI.Views.Pages;
 using Wpf.Ui.Appearance;
 
 namespace VirtualScreenManager.UI.Services;
@@ -43,11 +42,11 @@ public class ApplicationHostService : IHostedService
 
     private void OnMainWindowLoaded(object sender, RoutedEventArgs e)
     {
-        if (sender is not MainWindow mainWindow)
+        if (sender is not IWindow window)
         {
             return;
         }
 
-        _ = mainWindow.NavigationView.Navigate(typeof(StatusPage));
+        window.NavigateToDefault();
     }
 }

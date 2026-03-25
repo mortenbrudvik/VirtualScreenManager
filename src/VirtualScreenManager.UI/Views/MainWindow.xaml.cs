@@ -1,5 +1,6 @@
 using VirtualScreenManager.UI.Services;
 using VirtualScreenManager.UI.ViewModels;
+using VirtualScreenManager.UI.Views.Pages;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -22,5 +23,10 @@ public partial class MainWindow : FluentWindow, IWindow
         contentDialogService.SetDialogHost(RootContentDialogHost);
 
         SystemThemeWatcher.Watch(this);
+    }
+
+    public void NavigateToDefault()
+    {
+        NavigationView.Navigate(typeof(StatusPage));
     }
 }

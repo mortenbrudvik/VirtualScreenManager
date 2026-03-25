@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -19,10 +18,24 @@ public partial class DisplayManagementViewModel : ViewModelBase
     private readonly IVirtualDisplayInfo _displayInfo;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
+    private readonly IDispatcherService _dispatcher;
     private readonly ILogger<DisplayManagementViewModel> _logger;
 
     [ObservableProperty]
     private double? _displayCount = 1;
+
+    partial void OnDisplayCountChanged(double? value)
+    {
+        if (value.HasValue)
+        {
+            var rounded = (int)Math.Round(value.Value);
+            var clamped = Math.Clamp(rounded, 1, 16);
+            if (Math.Abs(value.Value - clamped) > 0.01)
+            {
+                DisplayCount = clamped;
+            }
+        }
+    }
 
     [ObservableProperty]
     private bool _isUpdating;
@@ -39,6 +52,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
         IVirtualDisplayInfo displayInfo,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
+        IDispatcherService dispatcher,
         ILogger<DisplayManagementViewModel> logger)
     {
         _displayManager = displayManager;
@@ -46,12 +60,13 @@ public partial class DisplayManagementViewModel : ViewModelBase
         _displayInfo = displayInfo;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public override async Task OnNavigatedToAsync()
     {
-        await RefreshAsync();
+        await RefreshAsync().ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -62,7 +77,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             // Load monitors immediately (local Win32 API — fast)
             var virtualMonitors = _displayInfo.GetVirtualMonitors();
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 DisplayCount = virtualMonitors.Count > 0 ? virtualMonitors.Count : 1;
             });
@@ -78,7 +93,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
         }
         finally
         {
-            Application.Current?.Dispatcher?.Invoke(() => IsRefreshing = false);
+            _dispatcher.Invoke(() => IsRefreshing = false);
         }
     }
 
@@ -114,12 +129,12 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to set display count");
             _activityLogger.Error("Displays", "Failed to set display count", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to set display count: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
         finally
         {
-            Application.Current?.Dispatcher?.Invoke(() => IsUpdating = false);
+            _dispatcher.Invoke(() => IsUpdating = false);
         }
     }
 
@@ -132,7 +147,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
             await _displayManager.RemoveAllDisplaysAsync().ConfigureAwait(false);
             _activityLogger.Info("Displays", "All virtual displays removed");
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 DisplayCount = 0;
                 VirtualMonitors.Clear();
@@ -142,12 +157,12 @@ public partial class DisplayManagementViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to remove all displays");
             _activityLogger.Error("Displays", "Failed to remove all displays", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to remove displays: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
         finally
         {
-            Application.Current?.Dispatcher?.Invoke(() => IsUpdating = false);
+            _dispatcher.Invoke(() => IsUpdating = false);
         }
     }
 
@@ -205,7 +220,7 @@ public partial class DisplayManagementViewModel : ViewModelBase
             var allMonitors = _displayInfo.GetAllMonitors();
             var virtualMonitors = _displayInfo.GetVirtualMonitors();
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 AllMonitors.Clear();
                 foreach (var monitor in allMonitors)

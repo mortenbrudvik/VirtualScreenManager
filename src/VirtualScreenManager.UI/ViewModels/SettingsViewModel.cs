@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -20,6 +19,7 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly IVirtualDisplayInfo _displayInfo;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
+    private readonly IDispatcherService _dispatcher;
     private readonly ILogger<SettingsViewModel> _logger;
 
     // Display Features
@@ -71,6 +71,7 @@ public partial class SettingsViewModel : ViewModelBase
         IVirtualDisplayInfo displayInfo,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
+        IDispatcherService dispatcher,
         ILogger<SettingsViewModel> logger)
     {
         _displayManager = displayManager;
@@ -78,12 +79,13 @@ public partial class SettingsViewModel : ViewModelBase
         _displayInfo = displayInfo;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public override async Task OnNavigatedToAsync()
     {
-        await LoadSettingsAsync();
+        await LoadSettingsAsync().ConfigureAwait(false);
     }
 
     private async Task LoadSettingsAsync()
@@ -93,7 +95,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             // Load install path
             var path = _displayInfo.GetInstallPath();
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 InstallPath = path ?? "Not installed");
 
             // Ensure pipe connection
@@ -110,7 +112,7 @@ public partial class SettingsViewModel : ViewModelBase
             if (_displayManager.IsConnected)
             {
                 var settings = await _displayManager.GetSettingsAsync().ConfigureAwait(false);
-                Application.Current?.Dispatcher?.Invoke(() =>
+                _dispatcher.Invoke(() =>
                 {
                     HdrPlusEnabled = settings.HdrPlus;
                     Sdr10BitEnabled = settings.Sdr10Bit;
@@ -131,7 +133,7 @@ public partial class SettingsViewModel : ViewModelBase
                     var currentGpu = await _displayManager.GetAssignedGpuAsync().ConfigureAwait(false);
                     var allGpus = await _displayManager.GetAllGpusAsync().ConfigureAwait(false);
 
-                    Application.Current?.Dispatcher?.Invoke(() =>
+                    _dispatcher.Invoke(() =>
                     {
                         CurrentGpu = currentGpu;
                         AvailableGpus.Clear();
@@ -155,7 +157,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
         finally
         {
-            Application.Current?.Dispatcher?.Invoke(() => IsLoading = false);
+            _dispatcher.Invoke(() => IsLoading = false);
         }
     }
 
@@ -241,7 +243,7 @@ public partial class SettingsViewModel : ViewModelBase
             await _displayManager.SetGpuAsync(SelectedGpu).ConfigureAwait(false);
             _activityLogger.Info("Settings", $"GPU changed to {SelectedGpu}");
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 CurrentGpu = SelectedGpu;
                 _snackbarService.Show("GPU Updated", $"GPU set to {SelectedGpu}", ControlAppearance.Success, null, TimeSpan.FromSeconds(3));
@@ -251,7 +253,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to set GPU");
             _activityLogger.Error("Settings", "Failed to set GPU", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to set GPU: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -268,12 +270,19 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static readonly HashSet<string> DriverReloadSettings = ["HDR+", "SDR 10-bit", "Custom EDID", "CEA Override"];
 
-    private async Task ExecuteSettingChangeAsync(string settingName, bool value, Func<bool, Task> action, Action<bool> revert)
+    /// <summary>
+    /// Applies a boolean setting change and auto-recovers from driver errors.
+    /// </summary>
+    /// <param name="settingName">Display name for logging.</param>
+    /// <param name="newValue">The already-applied new value (post-change). On error, <c>!newValue</c> is passed to <paramref name="revert"/>.</param>
+    /// <param name="action">The async action that sends the value to the driver.</param>
+    /// <param name="revert">Callback to restore the UI property on failure.</param>
+    private async Task ExecuteSettingChangeAsync(string settingName, bool newValue, Func<bool, Task> action, Action<bool> revert)
     {
         try
         {
-            await action(value).ConfigureAwait(false);
-            _activityLogger.Info("Settings", $"{settingName} {(value ? "enabled" : "disabled")}");
+            await action(newValue).ConfigureAwait(false);
+            _activityLogger.Info("Settings", $"{settingName} {(newValue ? "enabled" : "disabled")}");
 
             if (DriverReloadSettings.Contains(settingName))
             {
@@ -291,9 +300,9 @@ public partial class SettingsViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to change {Setting}", settingName);
             _activityLogger.Error("Settings", $"Failed to change {settingName}", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
-                revert(!value);
+                revert(!newValue);
                 _snackbarService.Show("Error", $"Failed to change {settingName}: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5));
             });
         }

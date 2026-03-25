@@ -20,7 +20,6 @@
     </Grid.RowDefinitions>
 
     <ui:TitleBar x:Name="TitleBar"
-                 Title="Virtual Screen Manager"
                  Grid.Row="0" />
 
     <ui:NavigationView x:Name="NavigationView"

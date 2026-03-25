@@ -61,14 +61,11 @@ public partial class App : Application
         }
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
         try
         {
-            if (_host is not null)
-            {
-                await _host.StopAsync();
-            }
+            _host?.StopAsync().GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {

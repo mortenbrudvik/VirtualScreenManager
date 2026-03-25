@@ -58,19 +58,38 @@
                     FontTypography="BodyStrong"
                     Margin="0,8,0,12" />
 
-      <UniformGrid Columns="2"
-                   Margin="0,0,0,16">
+      <Grid Margin="0,0,0,16">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <!-- Pipe Status -->
-        <ui:Card Margin="0,0,8,8">
+        <ui:Card Grid.Column="0" Grid.Row="0" Margin="0,0,8,8">
           <StackPanel>
             <ui:TextBlock Text="Pipe Status"
                           Appearance="Secondary"
                           Margin="0,0,0,4" />
             <StackPanel Orientation="Horizontal">
               <Ellipse Width="10" Height="10"
-                       Fill="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToBrushConverter}}"
                        Margin="0,0,8,0"
-                       VerticalAlignment="Center" />
+                       VerticalAlignment="Center"
+                       AutomationProperties.Name="Pipe connection status">
+                <Ellipse.Style>
+                  <Style TargetType="Ellipse">
+                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding ViewModel.IsConnected}" Value="True">
+                        <Setter Property="Fill" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Ellipse.Style>
+              </Ellipse>
               <ui:TextBlock Text="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToStatusConverter}}"
                             FontTypography="BodyStrong" />
             </StackPanel>
@@ -78,16 +97,27 @@
         </ui:Card>
 
         <!-- Connection Status -->
-        <ui:Card Margin="8,0,0,8">
+        <ui:Card Grid.Column="1" Grid.Row="0" Margin="8,0,0,8">
           <StackPanel>
             <ui:TextBlock Text="Connected"
                           Appearance="Secondary"
                           Margin="0,0,0,4" />
             <StackPanel Orientation="Horizontal">
               <Ellipse Width="10" Height="10"
-                       Fill="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToBrushConverter}}"
                        Margin="0,0,8,0"
-                       VerticalAlignment="Center" />
+                       VerticalAlignment="Center"
+                       AutomationProperties.Name="Connection status">
+                <Ellipse.Style>
+                  <Style TargetType="Ellipse">
+                    <Setter Property="Fill" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding ViewModel.IsConnected}" Value="True">
+                        <Setter Property="Fill" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Ellipse.Style>
+              </Ellipse>
               <ui:TextBlock Text="{Binding ViewModel.IsConnected, Converter={StaticResource BoolToStatusConverter}}"
                             FontTypography="BodyStrong" />
             </StackPanel>
@@ -95,7 +125,7 @@
         </ui:Card>
 
         <!-- Display Count -->
-        <ui:Card Margin="0,0,8,8">
+        <ui:Card Grid.Column="0" Grid.Row="1" Margin="0,0,8,8">
           <StackPanel>
             <ui:TextBlock Text="Virtual Displays"
                           Appearance="Secondary"
@@ -106,7 +136,7 @@
         </ui:Card>
 
         <!-- Device State -->
-        <ui:Card Margin="8,0,0,8">
+        <ui:Card Grid.Column="1" Grid.Row="1" Margin="8,0,0,8">
           <StackPanel>
             <ui:TextBlock Text="Device State"
                           Appearance="Secondary"
@@ -115,7 +145,7 @@
                           FontTypography="BodyStrong" />
           </StackPanel>
         </ui:Card>
-      </UniformGrid>
+      </Grid>
 
       <!-- Actions -->
       <ui:TextBlock Text="Actions"

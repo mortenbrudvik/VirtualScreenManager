@@ -6,12 +6,14 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using VirtualScreenManager.Core.Models;
 using VirtualScreenManager.Core.Services;
+using VirtualScreenManager.UI.Services;
 
 namespace VirtualScreenManager.UI.ViewModels;
 
 public partial class ActivityLogViewModel : ViewModelBase
 {
     private readonly IActivityLogger _activityLogger;
+    private readonly IDispatcherService _dispatcher;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsAllSelected))]
@@ -27,9 +29,10 @@ public partial class ActivityLogViewModel : ViewModelBase
 
     public ObservableCollection<LogEntry> FilteredEntries { get; } = [];
 
-    public ActivityLogViewModel(IActivityLogger activityLogger)
+    public ActivityLogViewModel(IActivityLogger activityLogger, IDispatcherService dispatcher)
     {
         _activityLogger = activityLogger;
+        _dispatcher = dispatcher;
     }
 
     public override Task OnNavigatedToAsync()
@@ -49,7 +52,7 @@ public partial class ActivityLogViewModel : ViewModelBase
 
     private void OnEntryAdded(LogEntry entry)
     {
-        Application.Current?.Dispatcher.Invoke(() =>
+        _dispatcher.Invoke(() =>
         {
             if (SelectedFilter == LogLevel.Trace || entry.Level >= SelectedFilter)
             {
@@ -60,7 +63,7 @@ public partial class ActivityLogViewModel : ViewModelBase
 
     private void OnCleared()
     {
-        Application.Current?.Dispatcher.Invoke(() => FilteredEntries.Clear());
+        _dispatcher.Invoke(() => FilteredEntries.Clear());
     }
 
     partial void OnSelectedFilterChanged(LogLevel value)

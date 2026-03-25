@@ -1,4 +1,3 @@
-using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
@@ -18,6 +17,7 @@ public partial class StatusViewModel : ViewModelBase
     private readonly IContentDialogService _contentDialogService;
     private readonly ISnackbarService _snackbarService;
     private readonly IActivityLogger _activityLogger;
+    private readonly IDispatcherService _dispatcher;
     private readonly ILogger<StatusViewModel> _logger;
 
     private DeviceState _currentDeviceState;
@@ -65,6 +65,7 @@ public partial class StatusViewModel : ViewModelBase
         IContentDialogService contentDialogService,
         ISnackbarService snackbarService,
         IActivityLogger activityLogger,
+        IDispatcherService dispatcher,
         ILogger<StatusViewModel> logger)
     {
         _displayManager = displayManager;
@@ -73,12 +74,13 @@ public partial class StatusViewModel : ViewModelBase
         _contentDialogService = contentDialogService;
         _snackbarService = snackbarService;
         _activityLogger = activityLogger;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public override async Task OnNavigatedToAsync()
     {
-        await RefreshStatusAsync();
+        await RefreshStatusAsync().ConfigureAwait(false);
     }
 
     [RelayCommand]
@@ -91,7 +93,7 @@ public partial class StatusViewModel : ViewModelBase
             var isConnected = false;
             int displayCount = 0;
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 CurrentDeviceState = deviceState;
             });
@@ -124,7 +126,7 @@ public partial class StatusViewModel : ViewModelBase
                 }
             }
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
             {
                 IsConnected = isConnected;
                 DisplayCount = displayCount;
@@ -137,7 +139,7 @@ public partial class StatusViewModel : ViewModelBase
         }
         finally
         {
-            Application.Current?.Dispatcher?.Invoke(() => IsRefreshing = false);
+            _dispatcher.Invoke(() => IsRefreshing = false);
         }
     }
 
@@ -152,7 +154,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             await _displaySetup.InstallDriverAsync().ConfigureAwait(false);
             _activityLogger.Info("Setup", "Driver installed successfully");
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Success", "Virtual Display Driver installed successfully.", ControlAppearance.Success, null, TimeSpan.FromSeconds(3)));
             await RefreshStatusAsync();
         }
@@ -160,7 +162,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Driver installation failed");
             _activityLogger.Error("Setup", "Driver installation failed", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Installation failed: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -175,7 +177,7 @@ public partial class StatusViewModel : ViewModelBase
             _activityLogger.Info("Setup", "Uninstalling driver...");
             await _displaySetup.UninstallDriverAsync().ConfigureAwait(false);
             _activityLogger.Info("Setup", "Driver uninstalled successfully");
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Success", "Driver uninstalled successfully.", ControlAppearance.Success, null, TimeSpan.FromSeconds(3)));
             await RefreshStatusAsync();
         }
@@ -183,7 +185,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Driver uninstall failed");
             _activityLogger.Error("Setup", "Uninstall failed", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Uninstall failed: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -203,7 +205,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to enable driver");
             _activityLogger.Error("Device", "Failed to enable driver", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to enable driver: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -223,7 +225,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to disable driver");
             _activityLogger.Error("Device", "Failed to disable driver", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to disable driver: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }
@@ -244,7 +246,7 @@ public partial class StatusViewModel : ViewModelBase
         {
             _logger.LogError(ex, "Failed to restart device");
             _activityLogger.Error("Device", "Failed to restart device", ex.Message);
-            Application.Current?.Dispatcher?.Invoke(() =>
+            _dispatcher.Invoke(() =>
                 _snackbarService.Show("Error", $"Failed to restart device: {ex.Message}", ControlAppearance.Danger, null, TimeSpan.FromSeconds(5)));
         }
     }

@@ -5,19 +5,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using VirtualDisplayDriver;
+using Wpf.Ui.Appearance;
 
 namespace VirtualScreenManager.UI.Controls;
 
 public class MonitorTopologyControl : FrameworkElement
 {
-    private static readonly SolidColorBrush DefaultVirtualFill = CreateFrozen(Color.FromArgb(40, 96, 165, 250));
-    private static readonly SolidColorBrush DefaultPhysicalFill = CreateFrozen(Color.FromArgb(40, 156, 163, 175));
-    private static readonly SolidColorBrush DefaultVirtualBorder = CreateFrozen(Color.FromArgb(200, 96, 165, 250));
-    private static readonly SolidColorBrush DefaultPhysicalBorder = CreateFrozen(Color.FromArgb(200, 156, 163, 175));
-    private static readonly SolidColorBrush DefaultPrimaryBorder = CreateFrozen(Color.FromArgb(220, 52, 211, 153));
-    private static readonly SolidColorBrush DefaultText = CreateFrozen(Color.FromArgb(220, 255, 255, 255));
-    private static readonly SolidColorBrush DefaultSubtext = CreateFrozen(Color.FromArgb(140, 255, 255, 255));
-
     public static readonly DependencyProperty MonitorsProperty =
         DependencyProperty.Register(
             nameof(Monitors),
@@ -29,6 +22,16 @@ public class MonitorTopologyControl : FrameworkElement
     {
         get => (IEnumerable?)GetValue(MonitorsProperty);
         set => SetValue(MonitorsProperty, value);
+    }
+
+    public MonitorTopologyControl()
+    {
+        ApplicationThemeManager.Changed += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(ApplicationTheme theme, Color accent)
+    {
+        InvalidateVisual();
     }
 
     private static void OnMonitorsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -86,13 +89,15 @@ public class MonitorTopologyControl : FrameworkElement
         double offsetX = padding + (availableWidth - scaledTotalWidth) / 2;
         double offsetY = padding + (availableHeight - scaledTotalHeight) / 2;
 
-        var virtualFill = ResolveBrush("TopologyVirtualFillBrush", DefaultVirtualFill);
-        var physicalFill = ResolveBrush("TopologyPhysicalFillBrush", DefaultPhysicalFill);
-        var virtualBorder = ResolveBrush("TopologyVirtualBorderBrush", DefaultVirtualBorder);
-        var physicalBorder = ResolveBrush("TopologyPhysicalBorderBrush", DefaultPhysicalBorder);
-        var primaryBorder = ResolveBrush("TopologyPrimaryBorderBrush", DefaultPrimaryBorder);
-        var textBrush = ResolveBrush("TopologyTextBrush", DefaultText);
-        var subtextBrush = ResolveBrush("TopologySubtextBrush", DefaultSubtext);
+        var virtualFill = ResolveBrush("AccentFillColorDefaultBrush", 0.16);
+        var physicalFill = ResolveBrush("ControlFillColorDefaultBrush", 1.0);
+        var virtualBorder = ResolveBrush("AccentFillColorDefaultBrush", 0.78);
+        var physicalBorder = ResolveBrush("ControlStrongStrokeColorDefaultBrush", 0.78);
+        var primaryBorder = ResolveBrush("SystemFillColorSuccessBrush", 0.86);
+        var textBrush = ResolveBrush("TextFillColorPrimaryBrush", 1.0);
+        var subtextBrush = ResolveBrush("TextFillColorSecondaryBrush", 1.0);
+
+        var fontFamily = SystemFonts.MessageFontFamily;
 
         foreach (var monitor in monitors)
         {
@@ -116,7 +121,7 @@ public class MonitorTopologyControl : FrameworkElement
                 monitor.DisplayNumber.ToString(),
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
-                new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
+                new Typeface(fontFamily, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal),
                 Math.Max(14, Math.Min(32, h * 0.25)),
                 textBrush,
                 VisualTreeHelper.GetDpi(this).PixelsPerDip);
@@ -133,7 +138,7 @@ public class MonitorTopologyControl : FrameworkElement
                     resText,
                     CultureInfo.CurrentCulture,
                     FlowDirection.LeftToRight,
-                    new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+                    new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
                     Math.Max(9, Math.Min(14, h * 0.1)),
                     subtextBrush,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
@@ -151,7 +156,7 @@ public class MonitorTopologyControl : FrameworkElement
                     badge,
                     CultureInfo.CurrentCulture,
                     FlowDirection.LeftToRight,
-                    new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+                    new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
                     9,
                     virtualBorder,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
@@ -168,15 +173,19 @@ public class MonitorTopologyControl : FrameworkElement
         return new Size(width, height);
     }
 
-    private static Brush ResolveBrush(string resourceKey, Brush fallback)
+    private static Brush ResolveBrush(string resourceKey, double opacity)
     {
-        return Application.Current?.TryFindResource(resourceKey) as Brush ?? fallback;
-    }
+        if (Application.Current?.TryFindResource(resourceKey) is Brush brush)
+        {
+            if (Math.Abs(opacity - 1.0) < 0.01)
+                return brush;
 
-    private static SolidColorBrush CreateFrozen(Color color)
-    {
-        var brush = new SolidColorBrush(color);
-        brush.Freeze();
-        return brush;
+            // Clone and apply opacity for fills that need transparency
+            var clone = brush.Clone();
+            clone.Opacity = opacity;
+            return clone;
+        }
+
+        return Brushes.Gray;
     }
 }

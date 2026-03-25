@@ -14,13 +14,14 @@ public class AppModule : Module
         builder.RegisterModule<CoreModule>();
 
         builder.RegisterType<VirtualDisplayInfo>().As<IVirtualDisplayInfo>().SingleInstance();
+        builder.RegisterType<DispatcherService>().As<IDispatcherService>().SingleInstance();
 
         // ViewModels
         builder.RegisterType<MainWindowViewModel>().AsSelf().SingleInstance();
         builder.RegisterType<StatusViewModel>().AsSelf();
         builder.RegisterType<DisplayManagementViewModel>().AsSelf();
         builder.RegisterType<SettingsViewModel>().AsSelf();
-        builder.RegisterType<ActivityLogViewModel>().AsSelf();
+        builder.RegisterType<ActivityLogViewModel>().AsSelf().SingleInstance();
 
         // MainWindow
         builder.RegisterType<MainWindow>().As<IWindow>().AsSelf().SingleInstance();
