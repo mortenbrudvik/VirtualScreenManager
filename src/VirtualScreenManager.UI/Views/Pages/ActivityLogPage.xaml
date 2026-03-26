@@ -92,10 +92,10 @@
     </StackPanel>
 
     <!-- Log List -->
-    <ListView Grid.Row="2"
-              ItemsSource="{Binding ViewModel.FilteredEntries}"
-              VirtualizingPanel.IsVirtualizing="True"
-              VirtualizingPanel.VirtualizationMode="Recycling">
+    <ui:ListView Grid.Row="2"
+                ItemsSource="{Binding ViewModel.FilteredEntries}"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling">
       <ListView.ItemTemplate>
         <DataTemplate>
           <Grid Margin="4,4">
@@ -128,7 +128,7 @@
           </Grid>
         </DataTemplate>
       </ListView.ItemTemplate>
-    </ListView>
+    </ui:ListView>
   </Grid>
 
 </Page>
